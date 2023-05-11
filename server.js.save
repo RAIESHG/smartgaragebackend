@@ -1,0 +1,138 @@
+
+var express = require('express');
+const mysql = require('mysql');
+const auth = require('./authentication/verifytoken');
+const cors = require("cors");
+//aws
+ var con = mysql.createPool({
+   database: 'sspengdb',
+   user: 'root',
+   host: 'localhost',
+   port: '3306',
+   multipleStatements: true,
+ });
+//local
+// var con = mysql.createPool({
+//  database: 'sspengdb',
+//  user: 'sspadmin',
+//  password:'password',
+//  host: '23.22.224.236',
+//  port: '3306',
+//  multipleStatements: true,
+// });
+var app = express();
+app.use(express.json());
+app.use(cors());
+con.on('error', function (exc) {
+  console.log(exc);
+});
+//User
+app.use('/updateUser', require("./routes/user/updateUser"));
+app.use('/changePassword', require("./routes/user/password/changePassword"));
+app.use('/loginUser', require("./routes/user/loginUser"));
+app.use('/registerUser', require("./routes/user/registerUser"));
+app.use('/verifyemail', require("./routes/user/verifyEmail"));
+app.use('/forgotPasswordSendOtp', require("./routes/user/password/forgotPasswordSendOtp"));
+app.use('/forgotPasswordVerifyOtp', require("./routes/user/password/forgotPasswordVerifyOtp"));
+
+
+//Categories
+app.use('/getAllCategories', require("./routes/categories/getAllCategories"));
+
+
+//Product
+app.use('/getAllProducts', require("./routes/product/getAllProduct"));
+app.use('/insertProduct',require("./routes/product/insertproduct"));
+app.use('/getOffers',require("./routes/product/getOffers"));
+app.use('/getProductOffer',require("./routes/product/getProductOffer"));
+
+// app.use('/productSearch',require("./routes/product/productSearch"))
+
+
+//Admin
+//Support 
+app.use('/supportChat',require("./routes/support/supportChat"))
+
+//Order
+app.use('/createOrder',require("./routes/order/createOrder"))
+
+
+//Stripe Payment Exercise:
+const { PrismaClient } = require('@prisma/client');
+const { user } = new PrismaClient();
+
+var Publishable_Key = 'pk_test_51KR7t0CDQMCV0KYipJJvSp2agXIWk4WBj4dktj3eYgyvsK2KVJDKJzjrQVsv1rqNtWteMYRwSJT7HjQUQ05pZyn800NxOdTtOV'
+var Secret_Key = 'sk_test_51KR7t0CDQMCV0KYilrTK7TuKJiDICCw9QYl9lYGxmqkW3OhMfj68ez3waDoiREPTmrhI1Md0dn7UQo3cRKclYfxr008iuUBrUl'
+const route = express();
+const stripetest = require('stripe')(Secret_Key); // replace STRIPE_SECRET_KEY with value
+
+app.get('/', async (req, res) => {
+  let users = await user.findFirst({
+    where:{
+      username:req.query.username
+    }
+  });
+  if(users.paymentid==""){
+    const customer = await stripetest.customers.create({
+      name:req.query.username,
+      description: 'My new customer',
+    }, async function  (err,newcustomer){
+      if(err != null){
+        console.log(err);
+        res.json({"error":error})
+      }
+      else{
+        let updateUser = await user.update(
+         {
+           where:{
+             username:req.query.username
+           },
+           data:{
+            paymentid:newcustomer.id
+           }
+         }
+        )
+        }
+    } 
+    );
+  }
+  else{
+    let users = await user.findFirst({
+      where:{
+        username:req.query.username
+      }
+    });
+    const paymentIntent = await stripetest.paymentIntents.create({
+      amount: parseInt(req.query.amount),
+      currency: req.query.currency,
+      customer:users.paymentid,
+  }, function (error, paymentIntent) {
+      if (error != null) {
+          console.log(error);
+          res.json({ "error": error });
+      } else {
+          res.json({
+              paymentIntent: paymentIntent.client_secret,
+              paymentIntentData: paymentIntent,
+              amount: req.query.amount,
+              currency: req.query.currency
+          });
+          console.log("Payment Initiated By User");
+      }
+  });
+  }
+});
+
+
+// module.exports = route;
+
+function setHeaders(res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+}
+
+let port = process.env.PORT || 5000;
+app.listen(port, function () {
+  return console.log("Started user authentication server listening on port " + port);
+});

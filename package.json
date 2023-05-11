@@ -1,0 +1,39 @@
+{
+  "name": "student_progress_indicator_backend",
+  "version": "1.0.0",
+  "description": "Student Progess Indicator backend ",
+  "main": "server.js",
+  "engines": {
+    "node": "14.x"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "Raiesh Ghimire",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^3.13.0-dev.40",
+    "bcrypt": "^5.1.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dropbox": "^10.31.0",
+    "express": "^4.17.1",
+    "formidable": "^2.0.1",
+    "generate-api-key": "^1.0.0",
+    "helmet": "^4.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "messagebird": "^3.8.1",
+    "mysql-client": "^0.3.0",
+    "nodemailer": "^6.7.2",
+    "nodemon": "^2.0.15",
+    "planetscale": "^2.1.0",
+    "request": "^2.88.2",
+    "sequelize": "^6.12.0-beta.3",
+    "stripe": "^8.203.0",
+    "wp-auth": "^1.0.6"
+  },
+  "devDependencies": {
+    "prisma": "^3.7.0"
+  }
+}
