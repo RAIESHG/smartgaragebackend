@@ -29,7 +29,7 @@
     "nodemon": "^2.0.15",
     "planetscale": "^2.1.0",
     "request": "^2.88.2",
-    "sequelize": "^6.12.0-beta.3",
+    "sequelize": "^6.29.0",
     "stripe": "^8.203.0",
     "wp-auth": "^1.0.6"
   },
