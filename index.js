@@ -33,6 +33,40 @@ app.post("/signup", async (req, res) => {
     res.status(500).json({ error: "Failed to create user" });
   }
 });
+app.get('/notifications', async (req, res) => {
+  try {
+    const notifications = await prisma.notification.findMany({
+      where: {
+        status: 'pending',
+      },
+    });
+
+    res.status(200).json({ success: true, data: notifications });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching notifications', error: error.message });
+  }
+});
+
+app.put('/notifications/:id', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    const updatedNotification = await prisma.notification.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        status,
+      },
+    });
+
+    res.status(200).json({ success: true, message: 'Notification updated successfully', data: updatedNotification });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error updating notification', error: error.message });
+  }
+});
+
 
 // Login API
 app.post("/login", async (req, res) => {
@@ -54,6 +88,87 @@ app.post("/login", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to login" });
+  }
+});
+
+app.post('/createnotifications', async (req, res) => {
+  const { serviceTitle, message, phoneNumber, location, status, userId } = req.body;
+
+  try {
+    const newNotification = await prisma.notification.create({
+      data: {
+        serviceTitle,
+        message,
+        phoneNumber,
+        location,
+        status,
+        userId
+      },
+    });
+
+    res.status(201).json({ success: true, message: 'Notification created successfully', data: newNotification });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ success: false, message: 'Error creating notification', error: error });
+  }
+});
+app.get('/notifications/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const notifications = await prisma.notification.findMany({
+      where: {
+        userId: Number(userId),
+      },
+    });
+
+    res.status(200).json({ success: true, data: notifications });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching notifications', error: error.message });
+  }
+});
+
+
+app.get('/users/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: parseInt(id),
+      },
+     
+    });
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error fetching user details', error: error.message });
+  }
+});
+
+// Update user details
+app.put('/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, email, phoneNumber, address, password, role } = req.body;
+
+  try {
+    const user = await prisma.user.update({
+      where: {
+        id: Number(id),
+      },
+      data: {
+        name,
+        email,
+        phoneNumber,
+        address,
+        password,
+        role,
+      },
+    });
+
+    res.status(200).json({ success: true, data: user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Error updating user details', error: error.message });
   }
 });
 
